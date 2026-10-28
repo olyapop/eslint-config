@@ -1,5 +1,5 @@
 // @ts-check
-import tseslint from "typescript-eslint"
+import { defineConfig } from "eslint/config"
 // HACK: importing from /dist is a hack only locally. Be sure to REBUILD!
 import config from "./dist/config.js"
 
@@ -8,10 +8,10 @@ const ignores = [
   "tests/junk.spec.ts",
   "example/node_modules/",
   "dist/**",
-  "**/test-data/**",
+  "**/testData/**",
 ]
 
 // add ignores
 const overrideIgnores = (c) => ({ ...c, ignores })
 
-export default tseslint.config(config.map((c) => overrideIgnores(c)))
+export default defineConfig(config.map((c) => overrideIgnores(c)))

@@ -1,12 +1,15 @@
-/* eslint-disable no-magic-numbers */
 import eslint from "@eslint/js"
-import tseslint, { type ConfigWithExtends } from "typescript-eslint"
+import { defineConfig, type Config } from "eslint/config"
+import tseslint from "typescript-eslint"
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended"
 import pluginJest from "eslint-plugin-jest"
 import stylistic from "@stylistic/eslint-plugin"
 import eslintPluginUnicorn from "eslint-plugin-unicorn"
 
-const myJavaScriptAndTypeScriptRules: ConfigWithExtends = {
+// eslint/config exports no named type for a config object that uses `extends`
+type ConfigWithExtends = Exclude<Parameters<typeof defineConfig>[0], unknown[]>
+
+const myJavaScriptAndTypeScriptRules: Config = {
   // shouldn't need to specify files: https://eslint.org/docs/latest/use/configure/configuration-files#specifying-files-and-ignores
   files: ["**/*.{ts,mts,cts,tsx}", "**/*.{js,mjs,cjs,jsx}"],
 
@@ -58,7 +61,7 @@ const myJavaScriptAndTypeScriptRules: ConfigWithExtends = {
   },
 }
 
-const myTypeScriptOnlyRules: ConfigWithExtends = {
+const myTypeScriptOnlyRules: Config = {
   // shouldn't need to specify files: https://eslint.org/docs/latest/use/configure/configuration-files#specifying-files-and-ignores
   files: ["**/*.{ts,mts,cts}"],
 
@@ -80,7 +83,7 @@ const myTypeScriptOnlyRules: ConfigWithExtends = {
 }
 
 // handles js config files like jest.config.js
-const configFileRules: ConfigWithExtends = {
+const configFileRules: Config = {
   files: ["**/*.config.js"],
 
   rules: {
@@ -108,11 +111,11 @@ const jestFileRules: ConfigWithExtends = {
   },
 }
 
-export default tseslint.config([
+export default defineConfig([
   eslint.configs.recommended,
   tseslint.configs.strict,
   tseslint.configs.stylistic,
-  eslintPluginUnicorn.configs["flat/recommended"],
+  eslintPluginUnicorn.configs.recommended,
 
   myJavaScriptAndTypeScriptRules,
   myTypeScriptOnlyRules,
@@ -126,4 +129,12 @@ export default tseslint.config([
   // eslint-config-prettier has the opportunity to override other configs per
   // https://github.com/prettier/eslint-plugin-prettier#configuration-new-eslintconfigjs
   eslintPluginPrettierRecommended,
+
+  // eslint-config-prettier 10 turns off @stylistic rules, including semi; keep
+  // enforcing no semicolons as this config did with eslint-config-prettier 9
+  {
+    files: myJavaScriptAndTypeScriptRules.files,
+    plugins: { "@stylistic": stylistic },
+    rules: { "@stylistic/semi": ["error", "never"] },
+  },
 ])
